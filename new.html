@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Turing Machine</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- To draw graph-->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js">
+    </script>
+
+    <script>
+            const statesSet = new Set();
+            const states=[];
+            const startStates=[];
+            const inputs=[];
+            const finalStates=[];
+            const outputs=[];
+            const directions=[];
+            var network ;  
+
+            function addRow() {
+                var startState = document.getElementById("startState");
+                var input = document.getElementById("input");
+                var finalState = document.getElementById("finalState");
+                var output = document.getElementById("output");
+                var direction = document.getElementById("direction");
+                var table = document.getElementById("myTableData");
+            
+                var rowCount = table.rows.length;
+                var row = table.insertRow(rowCount);
+            
+                row.insertCell(0).innerHTML= '<input type="button" value = "Delete" onClick="Javacsript:deleteRow(this)">';
+                row.insertCell(1).innerHTML= startState.value;
+                row.insertCell(2).innerHTML= input.value;
+                row.insertCell(3).innerHTML= finalState.value;
+                row.insertCell(4).innerHTML= output.value;
+                row.insertCell(5).innerHTML= direction.value;
+            
+                states.push(startState.value);
+                states.push(finalState.value);
+
+                startStates.push(startState.value);
+                inputs.push(input.value);
+                finalStates.push(finalState.value);
+                outputs.push(output.value);
+                directions.push(direction.value);
+            }
+        
+
+
+            function deleteRow(obj) {
+                //obj- table cell
+                //index is always greater than 1 as table has already 1 row
+                var index = obj.parentNode.parentNode.rowIndex;
+                var table = document.getElementById("myTableData");
+                
+                var start=table.rows[index].cells[1].innerHTML;
+                var end=table.rows[index].cells[3].innerHTML;
+
+                if (index-1 > -1) {
+                    startStates.splice(index-1, 1);
+                    inputs.splice(index-1, 1);
+                    finalStates.splice(index-1, 1);
+                    outputs.splice(index-1, 1);
+                    directions.splice(index-1, 1);
+                }
+
+                const i = states.indexOf(start);
+                if (i > -1) {
+                    states.splice(i, 1);
+                }
+
+                const j = states.indexOf(end);
+                if (j > -1) {
+                    states.splice(j, 1);
+                }
+
+                table.deleteRow(index);
+
+            }
+        
+
+     
+            function createGraph(){
+                statesSet.clear();
+
+                for(var i=0;i<states.length;i++){
+                    statesSet.add(states[i]);
+                }
+
+                var setIter = statesSet.values();
+                const nodes1 = [] ; 
+
+                for(var i=0; i<statesSet.size ;i++){
+                    var s=String(setIter.next().value);
+                    nodes1.push({id: String(s), label: s , color: { border: 'black', background: 'rgb(56, 146, 158)' } });
+                }
+
+                const edges1=[];
+                for(var i=0; i< startStates.length ;i++){
+                    edges1.push({from: String(startStates[i]) , to: String(finalStates[i]), arrows: "to", label: String(inputs[i])+"/"+String(outputs[i]+","+String(directions[i])) } );
+                }
+
+                var data = {
+                    nodes: nodes1,
+                    edges: edges1
+                };
+
+                var options = {
+                    edges: {
+                        arrows: {
+                        to: { enabled: true, scaleFactor: 1, type: "arrow" }
+                        } ,
+                        color:{
+                            color : "black",
+                            }
+                        }
+                };
+            
+                var container = document.getElementById("mynetwork");
+                network = new vis.Network(container, data, options);
+                
+                network.body.nodes["qS"].options.color.border = "yellow";
+                network.body.nodes["qS"].options.borderWidth = 5 ; 
+            }
+    </script>
+</head>
+
+<body>
+
+<H1><center>Turing Machine Visualizer</center></H1>
+<br>
+<br>
+
+<div style="height:200px; width:100%;">
+    <span id="myform">
+        <table>
+            <tr>
+                <td>Start state:</td>
+                <td><input type="text" id="startState"></td>
+            </tr>
+            <tr>
+                <td>Input:</td>
+                <td><input type="text" id="input">
+            </tr>
+            <tr>
+                <td>Final state:</td>
+                <td><input type="text" id="finalState">
+            </tr>
+            <tr>
+                <td>Output:</td>
+                <td><input type="text" id="output">
+            </tr>
+            <tr>
+                <td>Direction:</td>
+                <td><input type="text" id="direction">
+                <input type="button" id="add" value="Add" onclick="Javascript:addRow()"></td>
+            </tr>
+        </table>
+        <br><br>
+    </span>
+
+    <span>
+        <form id="frm1" style="margin-left:50% ; margin-top:-165px">
+                Input : <input type="text" name="input">
+                <br><br>
+        </form>
+    </span>
+
+
+    <button onclick="loadOnTape()" style="margin-left:50% ; margin-right:3%">Load on tape</button>
+    <button onclick="startSimulation()" style="margin-right:3% ">Start Simulation</button>
+    <button onClick="anotherInput()" >Another input</button>
+    <br><br>
+
+    <table style="border: 1px solid black; border-spacing: 15px; padding:0.1px ; margin-left:51%">
+        <tr id="myRow">
+        
+        </tr>
+    </table>
+</div>
+
+
+<div style="margin-top:35px">
+    <span id="mydata">
+        <b>Transition Table</b>
+        <input type="button" id="createGraph" style="margin-left:150px" value="Create Graph" onclick="Javascript:createGraph()">
+        <br><br>
+        <table id="myTableData"  border="1" cellpadding="2">
+            <tr>
+                <!-- nbsp-no blank space -->
+                <td>&nbsp;</td>
+                <td><b>Start State</b></td>
+                <td><b>Input</b></td>
+                <td><b>Final State</b></td>
+                <td><b>Output</b></td>
+                <td><b>Direction</b></td>
+            </tr>
+        </table>
+    </span>
+
+    <div id="mynetwork">
+    </div> 
+
+</div>
+
+<br>
+
+<div id="result"></div>
+
+<script>
+
+    var inputString="" ;
+    var currentState="qS" ; 
+    var accepted = false ; 
+    var i=0 ; 
+    var temp_i = 0 ; 
+    var prevState = "qS" ;
+
+    function addCellData(data) {
+        var row = document.getElementById("myRow");
+        var i = document.getElementById("myRow").cells.length;
+        var x = row.insertCell(i);
+        
+        x.setAttribute("id" , String("cell"+String(i) )) ; //cell0 cell1 cell2 
+        x.innerHTML = data;
+    }
+
+
+    function loadOnTape(){
+        var x = document.getElementById("frm1").elements[0].value;
+        inputString = x ; 
+         
+        for(var i=0 ; i<inputString.length ; i++){
+            addCellData(inputString[i]) ; 
+        }
+    }
+
+
+    function addColor(i,color){
+        //i-cell index
+        var cell = document.getElementById(String("cell"+String(i))) ;
+        cell.style.background=color ; 
+    }
+
+
+    function anotherInput(){
+        var row = document.getElementById("myRow");
+
+        for(var j=0 ; j<inputString.length ; j++){
+            row.deleteCell(0);
+        }
+
+        inputString = "" ; 
+        accepted = false ; 
+        i=0 ; 
+        //temp_i-stores the previous i value
+        temp_i = 0 ;
+        
+        //removing highlights
+        network.body.nodes[currentState].options.color.border = "black";
+        network.body.nodes[currentState].options.borderWidth = 0.5 ;
+
+        network.body.nodes[prevState].options.color.border = "black";
+        network.body.nodes[prevState].options.borderWidth = 0.5 ;
+
+        //highlighting start state
+        network.body.nodes["qS"].options.color.border = "yellow";
+        network.body.nodes["qS"].options.borderWidth = 5 ;
+
+        network.body.emitter.emit('_dataChanged') ; 
+        network.redraw() ; 
+
+        currentState = "qS" ;
+        prevState = "qS" ; 
+
+        var res = document.getElementById("result") ;
+        res.innerHTML = "";
+        res.style.backgroundColor = "powderblue" ;
+    }
+
+
+
+    function startSimulation(){
+        
+        setTimeout(function(){
+
+            addColor(temp_i, "powderblue") ;  //remove color
+            network.body.nodes[currentState].options.color.border = "black";
+            network.body.nodes[currentState].options.borderWidth = 0.5 ;
+
+            network.body.emitter.emit('_dataChanged') ; 
+            network.redraw() ; 
+            
+            temp_i = i ; 
+            addColor(i,"pink") ; 
+            
+            var tapeHead = i ;
+            var cell = document.getElementById(String("cell"+String(i) )) ; 
+            var headValue = cell.innerHTML ; 
+
+            var j=0 ; 
+            var transitionFound = false ; 
+
+            for( j=0 ; j<startStates.length ; j++){
+                if(startStates[j]==currentState && inputs[j]==headValue){
+                    transitionFound = true ; 
+                    //change color
+                    network.body.nodes[finalStates[j]].options.borderWidth = 5 ;
+                    network.body.nodes[finalStates[j]].options.color.border = "yellow";
+
+                    network.body.emitter.emit('_dataChanged') ; 
+                    network.redraw() ; 
+
+                    //change value on tape
+                    var row = document.getElementById("myRow");
+                    row.cells[i].innerHTML = outputs[j] ; 
+
+                    inputString[i] = outputs[j] ; 
+                    
+                    //updating the states
+                    prevState = currentState ; 
+                    currentState = finalStates[j] ; 
+
+                    if( (currentState==="qA") && (i===(inputString.length-1)) ){
+                        accepted = true ; 
+                        console.log("accepted : "+accepted) ; 
+                    }
+
+                    if(i===(inputString.length-1)){
+                        if(accepted==true){
+                            console.log("STRING ACCEPTED") ; 
+                            var res = document.getElementById("result") ; 
+                            res.innerHTML = "Accepted";
+                            res.style.backgroundColor = "green" ; 
+
+                        }
+                        else{
+                            console.log("STRING REJECTED") ; 
+                            var res = document.getElementById("result") ; 
+                            res.innerHTML = "Rejected";
+                            res.style.backgroundColor = "red" ; 
+                        }
+                    }
+
+                    if(directions[j]=='l' || directions[j]=='L'){
+                        if(i!=0){ 
+                            i-- ; 
+                        } 
+                    }
+                    else{
+                        i++ ; 
+                    }
+
+                    break ; 
+                }
+
+                if(j==(startStates.length-1) && transitionFound==false){
+                    console.log("STRING REJECTED") ; 
+                    var res = document.getElementById("result") ;
+                    res.innerHTML = "Rejected";
+                    res.style.backgroundColor = "red" ;
+                }
+            }
+            
+
+            if(i<inputString.length && i>=0 && (transitionFound==true)){
+            startSimulation() ; 
+            }
+
+
+        },1500) //1.5 seconds
+
+    }
+
+</script>
+
+</body>
+</html>
